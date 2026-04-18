@@ -1,0 +1,28 @@
+[project]
+name = "contacts"
+version = "0.1.0"
+description = "Headless personal CRM for the AI age"
+readme = "README.md"
+authors = [
+    { name = "Pascal Brokmeier", email = "git@pascalbrokmeier.de" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.13.2",
+    "pydantic-ai>=1.84.1",
+    "pydantic-settings>=2.13.1",
+    "rich>=15.0.0",
+    "typer>=0.24.1",
+]
+
+[project.scripts]
+contacts = "contacts:main"
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+]

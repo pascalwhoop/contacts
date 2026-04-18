@@ -1,0 +1,61 @@
+name: Publish to PyPI & GitHub
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "datasets/**"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump Version (Local Only)
+        id: versioning
+        run: |
+          uv version --bump patch
+          NEW_VERSION=$(uv version --short)
+
+          git add pyproject.toml
+          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git tag "v$NEW_VERSION"
+
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Validate & Publish to PyPI
+        run: make publish
+
+      - name: Push to GitHub (Transaction Commit)
+        run: |
+          git push origin "HEAD:${{ github.ref_name }}"
+          git push origin "v${{ steps.versioning.outputs.version }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.versioning.outputs.version }}" \
+            dist/* \
+            --title "Release v${{ steps.versioning.outputs.version }}" \
+            --generate-notes
