@@ -1,6 +1,6 @@
 [project]
 name = "contacts"
-version = "0.1.0"
+version = "0.1.1"
 description = "Headless personal CRM for the AI age"
 readme = "README.md"
 authors = [
